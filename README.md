@@ -137,6 +137,15 @@ An instance of a *[Photo][9]* object.
 |tiny|String|Photo's tiny size url|
 |extension|String|Photo's extension|
 
+## Roadmap
+
+- [ ] Improve video properties for resolution?
+- [ ] Update docs
+  - [ ] README.md
+  - [ ] examples/
+- [ ] Support collections https://www.pexels.com/api/documentation/#collections-overview
+
+
 <!-- References -->
 [0]: https://pexels.com                        "Pexels website"
 [1]: https://2.python-requests.org/en/master/  "Documentation: requests"
