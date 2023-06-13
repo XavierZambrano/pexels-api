@@ -2,3 +2,5 @@
 *.whl
 *.egg-info
 build/*
+.idea/*
+venv/*
