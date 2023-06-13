@@ -66,7 +66,7 @@ class Video:
 
     @property
     def link(self):
-        return self.highest_resolution_video['link'].split("&")[0]
+        return self.highest_resolution_video['link']
 
     @property
     def extension(self):
