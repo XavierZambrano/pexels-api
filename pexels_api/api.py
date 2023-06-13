@@ -19,13 +19,16 @@ import traceback
 from pexels_api.tools import Photo
 from pexels_api.exceptions import (
     PexelsInvalidToken,
-    PexelsInvalidPhtoID,
+    PexelsInvalidPhotoID,
     PexelsConnectionClosed,
     PexelsInvalidQuery,
     PexelsForbidden,
-    PexelsResouceUnavailable,
-    PexelsUnkownException,
+    PexelsResourceUnavailable,
+    PexelsUnknownException,
 )
+from pexels_api.tools.video import Video
+
+
 VALID_SIZES: list[str] = ["large", "medium", "small", ]
 "List of valid Photo sizes supported by Pexels API v1."
 
@@ -147,11 +150,11 @@ class API:
         self.next_page = None
         self.prev_page = None
 
-    def search(self, query: str = "",
+    def search_photo(self, query: str = "",
                results_per_page: int = 15,
                page: int = 1,
-               orientation: str = "",
-               size: int = None,
+               orientation: str = None,
+               size: str = None,
                color: str = None,
                locale: str = None):
         """
@@ -185,14 +188,14 @@ class API:
                 1. `"portrait"` higher than wider.
                 1. `"square"` wide and height are the same.
 
-        :param int size:
+        :param str size:
             OPTIONAL
 
             Size of the image to look up.
                 1. `"large"` >= 24MP
                 1. `"medium"` >= 12MP
                 1. `"small"` >= 4MP
-            The size displayed will be an aproximation.
+            The size displayed will be an approximation.
 
         :param str color:
             OPTIONAL
@@ -276,7 +279,7 @@ class API:
 
         if size != None or size == "":
             size = size.lower()
-            if size in VALID_ORIENTATIONS:
+            if size in VALID_SIZES:
                 url += data_pattern["size"].format(size)
             else:
                 raise PexelsInvalidQuery(
@@ -304,7 +307,134 @@ class API:
         raise PexelsInvalidQuery(
             f"Invalid Query, unable to search for ({query})")
 
-    def popular(self, results_per_page: int = 15, page: int = 1):
+    def search_video(self, query: str = "",
+                     results_per_page: int = 15,
+                     page: int = 1,
+                     orientation: str = None,
+                     size: str = None,
+                     locale: str = None):
+        """
+        Return json for the given query.
+
+        GET https://api.pexels.com/v1/search
+
+        :param str query:
+            REQUIRED
+
+            Keyword to search in pexels. all spaces will be converted in "+". instead of %20
+
+        :param int results_per_page:
+            OPTIONAL
+
+            Defines how many results are going to appear by page.
+
+            Defaults to `15` elements.
+
+        :param int page:
+            OPTIONAL
+
+            Index of the page to look up.
+            Defaults to start on page `1`.
+
+        :param str orientation:
+            OPTIONAL
+
+            Orientation of the image, it can either be
+                1. `"landscape"` wider than higher.
+                1. `"portrait"` higher than wider.
+                1. `"square"` wide and height are the same.
+
+        :param str size:
+            OPTIONAL
+
+            Minimum size of the image to look up.
+                1. `"large"` >= 4K
+                1. `"medium"` >= Full HD
+                1. `"small"` >= HD
+            The size displayed will be an approximation.
+
+        :param str locale:
+            OPTIONAL
+
+            Location where the image has been taken.
+            Supperted Locations:
+                1. `"en-US"`
+                1. `"pt-BR"`
+                1. `"es-ES"`
+                1. `"ca-ES"`
+                1. `"de-DE"`
+                1. `"it-IT"`
+                1. `"fr-FR"`
+                1. `"sv-SE"`
+                1. `"id-ID"`
+                1. `"pl-PL"`
+                1. `"ja-JP"`
+                1. `"zh-TW"`
+                1. `"zh-CN"`
+                1. `"ko-KR"`
+                1. `"th-TH"`
+                1. `"nl-NL"`
+                1. `"hu-HU"`
+                1. `"vi-VN"`
+                1. `"cs-CZ"`
+                1. `"da-DK"`
+                1. `"fi-FI"`
+                1. `"uk-UA"`
+                1. `"el-GR"`
+                1. `"ro-RO"`
+                1. `"nb-NO"`
+                1. `"sk-SK"`
+                1. `"tr-TR"`
+                1. `"ru-RU"`
+
+
+        """
+
+        if not query:
+            PexelsInvalidQuery(f"Error invalid query {query}")
+        query = query.replace(" ", "+")
+        url = "https://api.pexels.com/videos/search?query={}&per_page={}&page={}".format(
+            query, results_per_page, page)
+        data_pattern: dict = {
+            "per_page": "&per_page={}",
+            "page": "&page={}",
+            "orientation": "&orientation={}",
+            "size": "&size={}",
+            "locale": "&locale={}",
+        }
+
+        if orientation != None or orientation == "":
+            orientation = orientation.lower()
+            if orientation in VALID_ORIENTATIONS:
+                url += data_pattern["orientation"].format(orientation)
+            else:
+                raise PexelsInvalidQuery(
+                    f"""Invalid Argument `orientation` on query. {orientation} not in {VALID_ORIENTATIONS}""")
+
+        if size != None or size == "":
+            size = size.lower()
+            if size in VALID_SIZES:
+                url += data_pattern["size"].format(size)
+            else:
+                raise PexelsInvalidQuery(
+                    f"""Invalid Argument `size` on query. {size} not in {VALID_SIZES}""")
+
+        if locale != None or locale == "":
+            locale = locale.lower()
+            if locale in VALID_LOCATIONS:
+                url += data_pattern["locale"].format(locale)
+            else:
+                raise PexelsInvalidQuery(
+                    f"""Invalid Argument `size` on query. {locale} not in {VALID_LOCATIONS}""")
+
+        self.__request(url)
+        # If there is no json data return None
+        if self.request:
+            return self.json
+        raise PexelsInvalidQuery(
+            f"Invalid Query, unable to search for ({query})")
+
+    def popular_photo(self, results_per_page: int = 15, page: int = 1):
         """
         Return json with popular photos of the current page.
 
@@ -331,7 +461,7 @@ class API:
         raise PexelsInvalidQuery(
             "Invalid Query, unable to request Popular Photos list.")
 
-    def curated(self, results_per_page: int = 15, page: int = 1):
+    def curated_photo(self, results_per_page: int = 15, page: int = 1):
         """
         Return json with curated photos of the current page.
 
@@ -381,15 +511,25 @@ class API:
         # If there is no json data return None
         return None if not self.request else self.json
 
-    def get_entries(self) -> list[Photo]:
+    def get_photo_entries(self) -> list[Photo]:
         """
         Return a list of photo objects.
 
-        Returns all connent in self.json["photos"] as Photo Objects.
+        Returns all content in self.json["photos"] as Photo Objects.
         """
         if not self.json:
             return None
         return [Photo(json_photo) for json_photo in self.json["photos"]]
+
+    def get_video_entries(self):
+        """
+        Returns a list of video objects
+
+        Returns all content in self.json["videos"] as Video Objects.
+        """
+        if not self.json:
+            return None
+        return [Video(json_video) for json_video in self.json["videos"]]
 
     def __request(self, url: str = '') -> requests.models.Response:
         """
@@ -478,7 +618,36 @@ class API:
             if self.request:
                 return Photo(self.json)
         except Exception as error:
-            raise PexelsUnkownException(
+            raise PexelsUnknownException(
+                "Unknown Error.\n\t"
+                f"TYPE  : {type(error)}\n\t"
+                f"ERROR : {error}\n\t"
+                f"traceback: {traceback.format_exc()}"
+            )
+        return None
+
+    def get_video_by_id(self, id: str = "") -> Video:
+        """
+        Get a video by it's Pexel's Video ID.
+
+        GET https://api.pexels.com/videos/videos/:id
+
+        ID needs to be an integer String.
+
+        :param id: Union[str|int]
+            ID of the video to request.
+
+        see: `"https://www.pexels.com/api/documentation/#videos-show"` for more
+        information.
+        """
+        try:
+            url = "https://api.pexels.com/videos/videos/{}".format(id)
+            self.__request(url)
+            # If there is no json data return None
+            if self.request:
+                return Video(self.json)
+        except Exception as error:
+            raise PexelsUnknownException(
                 "Unknown Error.\n\t"
                 f"TYPE  : {type(error)}\n\t"
                 f"ERROR : {error}\n\t"

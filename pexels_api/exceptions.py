@@ -1,7 +1,7 @@
 class PexelsInvalidToken(Exception):
     pass
 
-class PexelsInvalidPhtoID(Exception):
+class PexelsInvalidPhotoID(Exception):
     pass
 
 class PexelsConnectionClosed(Exception):
@@ -13,8 +13,8 @@ class PexelsInvalidQuery(Exception):
 class PexelsForbidden(Exception):
     pass
 
-class PexelsResouceUnavailable(Exception):
+class PexelsResourceUnavailable(Exception):
     pass
 
-class PexelsUnkownException(Exception):
+class PexelsUnknownException(Exception):
     pass
