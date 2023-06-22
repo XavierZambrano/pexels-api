@@ -1,10 +1,5 @@
-# Author:           Logan Maupin
-# Pexels Website:   https://www.pexels.com
-# class information:
-#     Get json data from https://www.pexels.com
-#     Search videos using Pexels API
-# Dependencies:
-#     requests
+from ..exceptions import PexelsNoVideoWithEqualOrHigherResolution
+
 
 class Video:
     def __init__(self, json_video):
@@ -55,6 +50,32 @@ class Video:
                 if dictionary["width"] > highest_resolution_video_dict["width"]:
                     highest_resolution_video_dict = dictionary
         return highest_resolution_video_dict
+
+    def link_closest_higher_resolution(self, resolution: tuple):
+        """
+        Return the link to the video with the equal or closest higher resolution.
+
+        Example if resolution is (1080, 1920) and exist:
+        - (900, 1800)
+        - (1000, 2000)
+        - (1100, 2200)
+        - (1200, 2400)
+        Then the link to (1100, 2200) will be returned.
+
+        Example if resolution is (1080, 1920) and exist:
+        - (900, 1600)
+        - (1080, 1920)
+        - (1170, 2080)
+        Then the link to (1080, 1920) will be returned.
+        """
+
+        sorted_video_files = sorted(self.__video["video_files"], key=lambda x: x["width"])
+        for video_file in sorted_video_files:
+            if video_file["width"] >= resolution[0] and video_file["height"] >= resolution[1]:
+                return video_file["link"]
+
+        raise PexelsNoVideoWithEqualOrHigherResolution(
+            'No video with equal or higher resolution found.')
 
     @property
     def highest_resolution_width(self):

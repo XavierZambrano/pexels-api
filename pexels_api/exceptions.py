@@ -18,3 +18,6 @@ class PexelsResourceUnavailable(Exception):
 
 class PexelsUnknownException(Exception):
     pass
+
+class PexelsNoVideoWithEqualOrHigherResolution(Exception):
+    pass
