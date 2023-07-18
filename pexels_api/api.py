@@ -25,6 +25,7 @@ from pexels_api.exceptions import (
     PexelsForbidden,
     PexelsResourceUnavailable,
     PexelsUnknownException,
+    PexelsInvalidCollectionId
 )
 from pexels_api.tools.video import Video
 
@@ -149,6 +150,21 @@ class API:
         self.has_previous_page = None
         self.next_page = None
         self.prev_page = None
+
+    def search_collection_media(self, collection_id: str, media_type: str = None, page: int = 1, results_per_page: int = 1):
+        if not collection_id:
+            PexelsInvalidCollectionId(f"Error invalid collection_id {collection_id}")
+        url = "https://api.pexels.com/v1/collections/{}?per_page={}&page={}".format(
+            collection_id, results_per_page, page)
+        if media_type:
+            url += "&type={}".format(media_type)
+
+        self.__request(url)
+        # If there is no json data return None
+        if self.request:
+            return self.json
+        raise PexelsInvalidCollectionId(
+            f"Invalid Query, unable to search for ({collection_id})")
 
     def search_photo(self, query: str = "",
                results_per_page: int = 15,
@@ -530,6 +546,22 @@ class API:
         if not self.json:
             return None
         return [Video(json_video) for json_video in self.json["videos"]]
+
+    def get_collection_media_entries(self):
+        """
+        Return a list of photo and video objects
+        """
+        if not self.json:
+            return None
+        media_entries = []
+        for media_data in self.json["media"]:
+            if media_data["type"] == "Video":
+                media_entries.append(Video(media_data))
+            elif media_data["type"] == "Photo":
+                media_entries.append(Photo(media_data))
+            else:
+                raise NotImplementedError
+        return media_entries
 
     def __request(self, url: str = '') -> requests.models.Response:
         """

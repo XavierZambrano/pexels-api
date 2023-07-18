@@ -10,6 +10,9 @@ class PexelsConnectionClosed(Exception):
 class PexelsInvalidQuery(Exception):
     pass
 
+class PexelsInvalidCollectionId(Exception):
+    pass
+
 class PexelsForbidden(Exception):
     pass
 
