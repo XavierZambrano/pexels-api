@@ -143,7 +143,7 @@ An instance of a *[Photo][9]* object.
 - [ ] Update docs
   - [ ] README.md
   - [ ] examples/
-- [ ] Support collections https://www.pexels.com/api/documentation/#collections-overview
+- [x] Support collections https://www.pexels.com/api/documentation/#collections-overview
 
 
 <!-- References -->
