@@ -6,6 +6,7 @@ import os
 
 from pexels_api.api import API
 from pexels_api.exceptions import PexelsNoVideoWithEqualOrHigherResolution
+from pexels_api.tools.utils import filter_video_entries
 
 
 class TestCollectionMedia(TestCase):
@@ -15,8 +16,9 @@ class TestCollectionMedia(TestCase):
         self.api = API(PEXELS_API_KEY)
 
     def test_collection_media(self):
-        self.api.search_collection_media('ulshmms', media_type='videos', page=1, results_per_page=25)
-        media = self.api.get_collection_media_entries()
-        for i, m in enumerate(media):
-            print(i)
-            print(m.url)
+        self.api.search_collection_media('wpfmesw', media_type='videos', page=1, results_per_page=5)
+        print(self.api.total_results)
+        videos = self.api.get_collection_media_entries()
+        videos = filter_video_entries(videos, min_size='medium', orientation='portrait')
+        for i, m in enumerate(videos):
+            print(m.link)
